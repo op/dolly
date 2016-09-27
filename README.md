@@ -9,5 +9,7 @@ Before:
 
 After:
 
-    user@host:~/ $ git clonep https://scm.com/repo.git
+    user@host:~/ $ git dolly https://scm.com/repo.git
     Cloning into '/home/user/src/scm.com/repo'...
+
+_Disclaimer: no sheep was harmed while making this clone tool._
