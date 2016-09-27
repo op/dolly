@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# git-clonep -- Clone a git repository into a directory structure
+# git-clonep -- Clone a git repository and retain directory structure
 #
 # Uses by default "~/src" as the root to where to clone repositories. It then
 # automatically sets up the target directory based on the given URL.
@@ -17,7 +17,6 @@
 import os
 import subprocess
 import sys
-import tempfile
 
 from urllib.parse import urlparse
 
@@ -26,65 +25,53 @@ def main():
     root = os.getenv('GIT_CLONEP_PATH', os.path.expanduser('~/src'))
     prog = os.path.basename(sys.argv[0])
     argv = sys.argv[2:] if sys.argv[0] == 'git' else sys.argv[1:]
-    repo = argv[-1]
 
-    host, path = extract_repo_host_path(repo)
-
-    # check if repo is already cloned
-    basename = os.path.basename(path).rstrip('.git')
-    guessed_path = get_repo_path(root, host, path, basename)
-    if os.path.exists(guessed_path):
-        sys.stderr.write("{0}: repository exists: {1}\n".format(prog, guessed_path))
+    repo_path = get_repo_path(root, argv[-1])
+    dirname = os.path.dirname(repo_path)
+    if os.path.exists(repo_path) and len(os.listdir(repo_path)) > 0:
+        sys.stderr.write("{0}: repository exists: {1}\n".format(prog, repo_path))
         return 1
 
-    prev = os.path.abspath(os.path.curdir)
-    tmpd = os.path.abspath(tempfile.mkdtemp(dir=root, prefix='git-clonep-'))
-    assert len(os.listdir(tmpd)) == 0, 'temporary directory should be empty'
-    os.chdir(tmpd)
-
-    # clone repository into a temporary directory, move it into our structure
-    # based on the repository name git chose for it
-    try:
-        rc = subprocess.call(['git', 'clone'] + argv)
-        if rc != 0:
-            return rc
-        files = os.listdir(tmpd)
-        assert len(files) == 1, 'unexpected amount of files'
-        real_path = get_repo_path(root, host, path, files[0])
-        if os.path.exists(real_path):
-            sys.stderr.write("{0}: repository exists: {1}\n".format(prog, guessed_path))
-            return 1
-        dirname = os.path.dirname(real_path)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        os.rename(files[0], real_path)
-    finally:
-        os.chdir(prev)
-        os.removedirs(tmpd)
-
-    home = os.path.expanduser('~')
-    if real_path.startswith(home):
-        real_path = os.path.join('~', os.path.relpath(real_path, home))
-    print("Cloned repository: {0}".format(real_path))
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    return subprocess.call(['git', 'clone'] + argv + [repo_path])
 
 
-def get_repo_path(root, host, path, basename):
-    """get_repo_path -- return repository filesystem path"""
+def get_repo_path(root, repo):
+    """Get repository filesystem path
+
+    Determine the format of the git repository URL and figure out the hostname,
+    path and name of repository to create the path where the repository should
+    be stored.
+
+    >>> get_repo_path('/usr/src', 'https://scm.com/x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'https://user@scm.com/x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'ssh://user@scm.com/x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'ssh+x://user@scm.com/x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'git://scm.com/x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'scm.com:x/y')
+    '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'u@scm.com:x/y')
+    '/usr/src/scm.com/x/y'
+    """
+    p = urlparse(repo)
+    if p.netloc:
+        host, path = p.netloc, p.path
+    else:
+        host, path = repo.split(':', 1)
+    host = host.split('@')[-1]
+    assert host and ':' not in host, 'unsupported url'
     dirname = os.path.dirname(path)
+    basename = os.path.basename(path).rstrip('.git')
     return os.path.join(root, host.lstrip('/'), dirname.lstrip('/'), basename)
 
 
-def extract_repo_host_path(repo):
-    p = urlparse(repo)
-    if p.netloc:
-        host = p.netloc
-        path = p.path
-    else:
-        host, path = repo.split(':', 1)
-        host = host.split('@')[-1]
-    assert host and ':' not in host, 'unsupported url'
-    return (host, path)
-
-
 if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
     sys.exit(main())
