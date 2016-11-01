@@ -37,7 +37,10 @@ def main():
 
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-    return subprocess.call(['git', 'clone'] + argv + [repo_path])
+    try:
+        return subprocess.call(['git', 'clone'] + argv + [repo_path])
+    except KeyboardInterrupt:
+        return 1
 
 
 def get_repo_path(root, repo):
