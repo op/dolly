@@ -52,6 +52,12 @@ def get_repo_path(root, repo):
 
     >>> get_repo_path('/usr/src', 'https://scm.com/x/y')
     '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'https://scm.com/x/yz')
+    '/usr/src/scm.com/x/yz'
+    >>> get_repo_path('/usr/src', 'https://scm.com/x/yt')
+    '/usr/src/scm.com/x/yt'
+    >>> get_repo_path('/usr/src', 'https://scm.com/x/y.git')
+    '/usr/src/scm.com/x/y'
     >>> get_repo_path('/usr/src', 'https://user@scm.com/x/y')
     '/usr/src/scm.com/x/y'
     >>> get_repo_path('/usr/src', 'ssh://user@scm.com/x/y')
@@ -73,7 +79,9 @@ def get_repo_path(root, repo):
     host = host.split('@')[-1]
     assert host and ':' not in host, 'unsupported url'
     dirname = os.path.dirname(path)
-    basename = os.path.basename(path).rstrip('.git')
+    basename = os.path.basename(path)
+    if basename.endswith('.git'):
+        basename = basename[:-4]
     return os.path.join(root, host.lstrip('/'), dirname.lstrip('/'), basename)
 
 
