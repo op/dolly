@@ -79,7 +79,8 @@ def get_repo_path(root, repo):
     if p.netloc:
         host, path = p.netloc, p.path
     else:
-        host, path = repo.split(':', 1)
+        host, _, path = repo.partition(':')
+        assert host and path, 'unsupported format'
     host = host.split('@')[-1]
     dirname = os.path.dirname(path)
     basename = os.path.basename(path)
