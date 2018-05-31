@@ -91,5 +91,8 @@ def get_repo_path(root, repo):
 
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()
-    sys.exit(main())
+    err, _ = doctest.testmod()
+    if err:
+        sys.exit(1)
+    else:
+        sys.exit(main())
