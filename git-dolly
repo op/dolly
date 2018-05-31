@@ -29,6 +29,8 @@ def main():
     prog = os.path.basename(sys.argv[0])
     argv = sys.argv[2:] if sys.argv[0] == 'git' else sys.argv[1:]
 
+    if not argv:
+        return subprocess.call(['git', 'clone'])
     repo_path = get_repo_path(root, argv[-1])
     dirname = os.path.dirname(repo_path)
     if os.path.exists(repo_path) and len(os.listdir(repo_path)) > 0:
