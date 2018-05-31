@@ -62,6 +62,8 @@ def get_repo_path(root, repo):
     '/usr/src/scm.com/x/y'
     >>> get_repo_path('/usr/src', 'ssh://user@scm.com/x/y')
     '/usr/src/scm.com/x/y'
+    >>> get_repo_path('/usr/src', 'ssh://user@scm.com:81/x/y')
+    '/usr/src/scm.com:81/x/y'
     >>> get_repo_path('/usr/src', 'ssh+x://user@scm.com/x/y')
     '/usr/src/scm.com/x/y'
     >>> get_repo_path('/usr/src', 'git://scm.com/x/y')
@@ -72,15 +74,11 @@ def get_repo_path(root, repo):
     '/usr/src/scm.com/x/y'
     """
     p = urlparse(repo)
-    global port           
     if p.netloc:
-        host, path, port = p.netloc, p.path, p.port
+        host, path = p.netloc, p.path
     else:
         host, path = repo.split(':', 1)
     host = host.split('@')[-1]
-    if port is not None:
-        host = host.split(':')[0]
-    assert host and ':' not in host, 'unsupported url'
     dirname = os.path.dirname(path)
     basename = os.path.basename(path)
     if basename.endswith('.git'):
