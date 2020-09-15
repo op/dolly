@@ -30,7 +30,13 @@ def main():
     argv = sys.argv[2:] if sys.argv[0] == 'git' else sys.argv[1:]
 
     if not argv:
-        return subprocess.call(['git', 'clone'])
+        sys.stderr.write("{0}: you must specify a subject to clone.\n".format(prog)
+                         + "\n"
+                         + "usage: git dolly [<options>] [--] <repo>\n"
+                         + "\n"
+                         + "See git-clone(1) for more information.")
+        return 1
+
     repo_path = get_repo_path(root, argv[-1])
     dirname = os.path.dirname(repo_path)
     if os.path.exists(repo_path) and len(os.listdir(repo_path)) > 0:
