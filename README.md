@@ -7,7 +7,7 @@ Before:
 ```bash
 user@host:~/ $ mkdir -p /home/user/src/scm.com
 user@host:~/ $ git clone https://scm.com/repo.git \
-  /home/user/src/sc.com/repo
+  /home/user/src/scm.com/repo
 Cloning into '/home/user/src/scm.com/repo'...
 ```
 
