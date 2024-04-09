@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# git-dolly -- Clone a git repository and retain directory structure
+# dolly -- Clone a vcs repository and retain directory structure
 #
 # Uses by default "~/src" as the root to where to clone repositories. It then
 # automatically sets up the target directory based on the given URL.
 #
-# To override the default, set GIT_DOLLY_PATH.
+# To override the default, set DOLLY_PATH.
 #
 # Example:
 #
-# These commands would all clone the repository to $HOME/src/scm.com/path/repository.
+# These commands would all automatically clone the repository to the path
+# $HOME/src/scm.com/path/repository.
+#
+# git:
 # $ git dolly https://scm.com/path/repository.git
 # $ git dolly scm.com:path/repository.git
+#
+# Mercurial:
+# $ hg dolly https://scm.com/path/repository.git
+# $ hg dolly scm.com:path/repository.git
 
 import os
 import subprocess
@@ -24,33 +31,68 @@ except ImportError:
     from urlparse import urlparse
 
 
+# Supported version control systems
+SUPPORTED_VCS = ("git", "hg")
+
+
 def main():
-    root = os.getenv("GIT_DOLLY_PATH", os.path.expanduser('~/src'))
+    # prefer DOLLY_PATH over the deprecated GIT_DOLLY_PATH
+    default_root = os.getenv("GIT_DOLLY_PATH", os.path.expanduser("~/src"))
+    root = os.getenv("DOLLY_PATH", default_root)
     prog = os.path.basename(sys.argv[0])
     argv = sys.argv[2:] if sys.argv[0] == "git" else sys.argv[1:]
+    vcs = get_vcs(prog, os.environ)
 
     if not argv:
         sys.stderr.write(
-            f"{prog}: you must specify a subject to clone.\n"
+            f"{vcs} dolly: you must specify a subject to clone.\n"
             + "\n"
-            + f"usage: git dolly [<options>] [--] <repo>\n"
+            + f"usage: {vcs} dolly [<options>] [--] <repo>\n"
             + "\n"
-            + f"See git-clone(1) for more information.\n"
+            + f"See `{vcs} clone --help` for more information.\n"
         )
         return 1
 
     repo_path = get_repo_path(root, argv[-1])
     dirname = os.path.dirname(repo_path)
     if os.path.exists(repo_path) and len(os.listdir(repo_path)) > 0:
-        sys.stderr.write(f"{prog}: repository exists: {repo_path}\n")
+        sys.stderr.write(f"{vcs} dolly: repository exists: {repo_path}\n")
         return 1
 
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     try:
-        return subprocess.call(["git", "clone"] + argv + [repo_path])
+        return subprocess.call([vcs, "clone"] + argv + [repo_path])
     except KeyboardInterrupt:
         return 1
+
+
+def get_vcs(prog, env):
+    """Get version control system
+
+    >>> get_vcs('dolly', {'GIT_EXEC_PATH': 'some/lib/git-core'})
+    'git'
+    >>> get_vcs('dolly', {'HG': 'some/bin/hg'})
+    'hg'
+    >>> get_vcs('git-dolly', {})
+    'git'
+    >>> get_vcs('hg-dolly', {})
+    'hg'
+    >>> get_vcs('cvs-dolly', {})
+    Traceback (most recent call last):
+        ...
+    ValueError: unsupported vcs: cvs
+    """
+    if env.get("GIT_EXEC_PATH"):
+        return "git"
+    if env.get("HG"):
+        return "hg"
+
+    vcs = prog.split("-")[0]
+    if vcs in SUPPORTED_VCS:
+        return vcs
+    else:
+        raise ValueError(f"unsupported vcs: {vcs}")
 
 
 def get_repo_path(root, repo):
