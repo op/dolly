@@ -24,7 +24,7 @@ Cloning into '/home/user/src/scm.com/repo'...
 * 📦 Clone with a single command
 * 🍱 Supports Git and Mercurial (hg)
 
-## ⚡Requirements
+## ⚡ Requirements
 
 * Git
 * Python >= **3.6**
@@ -33,13 +33,14 @@ Cloning into '/home/user/src/scm.com/repo'...
 
 Classic clone:
 ```bash
-$ git https://github.com/op/dolly.git
+$ git clone https://github.com/op/dolly
+$ install dolly/dolly /usr/local/bin
 ```
 
 git:
 ```bash
-# add symlink somewhere in your PATH, eg ~/bin
-$ ln -s ~/bin/git-dolly ~/path/to/dolly/dolly
+# create symlink in PATH (or GIT_EXEC_PATH)
+$ ln -s /usr/local/bin/{,git-}dolly
 ```
 
 Mercurial (hg):
@@ -47,7 +48,7 @@ Mercurial (hg):
 # add to ~/.hgrc or eg XDG_CONFIG_HOME, see hg help config
 cat <<EOF >> $XDG_CONFIG_HOME/hg/hgrc
 [alias]
-dolly = !~/path/to/dolly/dolly $@
+dolly = !/usr/local/bin/dolly $@
 EOF
 ```
 
