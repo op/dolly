@@ -22,6 +22,7 @@ Cloning into '/home/user/src/scm.com/repo'...
 * 📇 Keep your source tree tidy
 * 📦 Clone with a single command
 * 🍱 Supports Git and Mercurial (hg)
+* 🌈 Compatible with Go and GOPATH
 
 ## ⚡ Requirements
 
