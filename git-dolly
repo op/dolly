@@ -25,28 +25,30 @@ except ImportError:
 
 
 def main():
-    root = os.getenv('GIT_DOLLY_PATH', os.path.expanduser('~/src'))
+    root = os.getenv("GIT_DOLLY_PATH", os.path.expanduser('~/src'))
     prog = os.path.basename(sys.argv[0])
-    argv = sys.argv[2:] if sys.argv[0] == 'git' else sys.argv[1:]
+    argv = sys.argv[2:] if sys.argv[0] == "git" else sys.argv[1:]
 
     if not argv:
-        sys.stderr.write("{0}: you must specify a subject to clone.\n".format(prog)
-                         + "\n"
-                         + "usage: git dolly [<options>] [--] <repo>\n"
-                         + "\n"
-                         + "See git-clone(1) for more information.")
+        sys.stderr.write(
+            f"{prog}: you must specify a subject to clone.\n"
+            + "\n"
+            + f"usage: git dolly [<options>] [--] <repo>\n"
+            + "\n"
+            + f"See git-clone(1) for more information.\n"
+        )
         return 1
 
     repo_path = get_repo_path(root, argv[-1])
     dirname = os.path.dirname(repo_path)
     if os.path.exists(repo_path) and len(os.listdir(repo_path)) > 0:
-        sys.stderr.write("{0}: repository exists: {1}\n".format(prog, repo_path))
+        sys.stderr.write(f"{prog}: repository exists: {repo_path}\n")
         return 1
 
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     try:
-        return subprocess.call(['git', 'clone'] + argv + [repo_path])
+        return subprocess.call(["git", "clone"] + argv + [repo_path])
     except KeyboardInterrupt:
         return 1
 
@@ -87,26 +89,27 @@ def get_repo_path(root, repo):
     if p.netloc:
         host, path = p.netloc, p.path
     else:
-        host, path = repo.split(':', 1)
-    host = host.split('@')[-1]
-    assert host and ':' not in host, 'unsupported url'
+        host, path = repo.split(":", 1)
+    host = host.split("@")[-1]
+    assert host and ":" not in host, "unsupported url"
 
     dirname = os.path.dirname(path)
     basename = os.path.basename(path)
 
-    if basename.endswith('.git'):
+    if basename.endswith(".git"):
         basename = basename[:-4]
 
     # remove leading ~ in paths
-    parts = dirname.split('/')
-    parts = map(lambda d: d.lstrip('~'), parts)
-    dirname = '/'.join(parts)
-    basename = basename.lstrip('~')
+    parts = dirname.split("/")
+    parts = map(lambda d: d.lstrip("~"), parts)
+    dirname = "/".join(parts)
+    basename = basename.lstrip("~")
 
-    return os.path.join(root, host.lstrip('/'), dirname.lstrip('/'), basename)
+    return os.path.join(root, host.lstrip("/"), dirname.lstrip("/"), basename)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
     sys.exit(main())
