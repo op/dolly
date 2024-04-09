@@ -5,9 +5,8 @@
 Before:
 
 ```bash
-user@host:~/ $ mkdir -p /home/user/src/scm.com
-user@host:~/ $ git clone https://scm.com/repo.git \
-  /home/user/src/scm.com/repo
+user@host:~/ $ mkdir -p ~/src/scm.com
+user@host:~/ $ git clone https://scm.com/repo.git ~/src/scm.com/repo
 Cloning into '/home/user/src/scm.com/repo'...
 ```
 
